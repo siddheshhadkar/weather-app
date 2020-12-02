@@ -8,16 +8,22 @@ import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
 import net.aksingh.owmjapis.api.APIException;
 import net.aksingh.owmjapis.core.OWM;
 import net.aksingh.owmjapis.model.CurrentWeather;
-import net.aksingh.owmjapis.model.HourlyWeatherForecast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    OWM owm;
+    private OWM owm;
+    private List<WeatherCard> weatherCards = new ArrayList<>();
+    private WeatherCardAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +34,29 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         owm = new OWM(APIKey.KEY);
         owm.setUnit(OWM.Unit.METRIC);
+
         new GetCurrentWeather().execute();
+
+        weatherCards = getWeatherCards();
+        adapter = new WeatherCardAdapter();
+        adapter.setWeatherCards(weatherCards);
+
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setAdapter(adapter);
+
+    }
+
+    private List<WeatherCard> getWeatherCards() {
+        // TODO: 2/12/20 fetch current and favourite weather cards
+        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
+        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
+        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
+        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
+        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
+        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
+        return weatherCards;
     }
 
     @Override
@@ -50,9 +78,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected CurrentWeather doInBackground(String... strings) {
             try {
-                HourlyWeatherForecast weatherForecast = owm.hourlyWeatherForecastByCityId(1268295);
+//                HourlyWeatherForecast weatherForecast = owm.hourlyWeatherForecastByCityId(1268295);
 //                HourlyWeatherForecast weatherForecast = owm.hourlyWeatherForecastByCityName("Mumbai", OWM.Country.INDIA);
-                Log.e("MAP", "" + weatherForecast.getDataList().size());
+                CurrentWeather currentWeather = owm.currentWeatherByCoords(34.251935, 93.489513);
+                Log.e("MAP", currentWeather.getMainData().toString());
             } catch (APIException e) {
                 e.printStackTrace();
             }
