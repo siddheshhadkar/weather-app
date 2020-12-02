@@ -1,5 +1,7 @@
 package com.example.weatherapp;
 
+import java.util.List;
+
 public class WeatherCard {
     private String city;
     private double temp;

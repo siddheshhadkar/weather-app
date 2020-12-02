@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class WeatherCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -48,6 +47,10 @@ public class WeatherCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             return R.layout.main_weather_card;
         else
             return R.layout.extra_weather_card;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
     }
 
     public interface OnItemClickListener {

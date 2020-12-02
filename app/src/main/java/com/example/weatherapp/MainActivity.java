@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +41,10 @@ public class MainActivity extends AppCompatActivity {
         weatherCards = getWeatherCards();
         adapter = new WeatherCardAdapter();
         adapter.setWeatherCards(weatherCards);
+        adapter.setOnItemClickListener(card -> {
+            // TODO: 3/12/20 New intent here
+            Toast.makeText(this, "TOast", Toast.LENGTH_SHORT).show();
+        });
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -50,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
 
     private List<WeatherCard> getWeatherCards() {
         // TODO: 2/12/20 fetch current and favourite weather cards
+        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
+        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
+        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
         weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
         weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
         weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
