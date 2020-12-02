@@ -141,7 +141,7 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/humdity"
+                        android:id="@+id/humidity"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Humidity: 20"
