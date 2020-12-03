@@ -1,14 +1,20 @@
 package com.example.weatherapp;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,6 +25,8 @@ import net.aksingh.owmjapis.api.APIException;
 import net.aksingh.owmjapis.core.OWM;
 import net.aksingh.owmjapis.model.CurrentWeather;
 import net.aksingh.owmjapis.model.HourlyWeatherForecast;
+import net.aksingh.owmjapis.model.param.City;
+import net.aksingh.owmjapis.model.param.WeatherData;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -29,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private final List<WeatherCard> weatherCards = new ArrayList<>();
     private OWM owm;
     private WeatherCardAdapter adapter;
+    final Context context = this;
 
     private double latitude;
     private double longitude;
@@ -48,18 +57,13 @@ public class MainActivity extends AppCompatActivity {
         longitude = 73.1305;
         new GetCurrentWeather().execute();
         getExtraCards();
-        addNewLocation("Mumbai");
-        addNewLocation("Thane");
-        addNewLocation("New York");
-        addNewLocation("Washington");
-        addNewLocation("Bahrain");
-        addNewLocation("London");
 
         adapter = new WeatherCardAdapter();
         adapter.setWeatherCards(weatherCards);
         adapter.setOnItemClickListener(card -> {
             Intent i = new Intent(this, DetailedWeather.class);
-//            i.putExtra("CITYNAME", card.getCity());
+            i.putExtra("CITYID", card.getCityID());
+            i.putExtra("CITYNAME", card.getCity());
             startActivity(i);
         });
 
@@ -106,7 +110,40 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.add_location_menu) {
-            // TODO: 26/11/20 new activity for location search
+            Log.e("test","Clicked");
+            LayoutInflater li = LayoutInflater.from(context);
+            View promptsView = li.inflate(R.layout.custom_dialog, null);
+
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+
+            // set prompts.xml to alertdialog builder
+            alertDialogBuilder.setView(promptsView);
+
+            final EditText userInput = (EditText) promptsView
+                    .findViewById(R.id.inputCityName);
+
+            alertDialogBuilder
+                    .setCancelable(true)
+                    .setPositiveButton("Add",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,int id) {
+                                    // get user input and set it to result
+                                    // edit text
+                                    addNewLocation(userInput.getText().toString());
+                                    dialog.cancel();
+                                }
+                            })
+                    .setNegativeButton("Cancel",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,int id) {
+                                    dialog.cancel();
+                                }
+                            });
+            // create alert dialog
+            AlertDialog alertDialog = alertDialogBuilder.create();
+
+            // show it
+            alertDialog.show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -119,10 +156,11 @@ public class MainActivity extends AppCompatActivity {
                 CurrentWeather currentWeather;
                 if (strings.length == 0) {
                     currentWeather = owm.currentWeatherByCoords(latitude, longitude);
+                    Log.e("Check results","City Name"+currentWeather.getCityName());
                 } else {
                     currentWeather = owm.currentWeatherByCityName(strings[0]);
+                    Log.e("Check results","City Name"+currentWeather.getCityName());
                 }
-                new GetHourlyForecast().execute(currentWeather.getCityId());
 
                 WeatherCard card = new WeatherCard();
                 card.setCity(currentWeather.getCityName());
@@ -132,6 +170,8 @@ public class MainActivity extends AppCompatActivity {
                 card.setTempMax(currentWeather.getMainData().getTempMax());
                 card.setWindSpeed(currentWeather.getWindData().getSpeed());
                 card.setWeatherIconDescription(currentWeather.getWeatherList().get(0).getMainInfo());
+                card.setCityID(currentWeather.getCityId());
+
                 if (strings.length == 0) {
                     weatherCards.set(0, card);
                 } else {
@@ -142,25 +182,12 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
-    }
-
-    class GetHourlyForecast extends AsyncTask<Integer, Void, Void> {
 
         @Override
-        protected Void doInBackground(Integer... integers) {
-            try {
-                HourlyWeatherForecast weatherForecast = owm.hourlyWeatherForecastByCityId(integers[0]);
-                Log.e("MAP", weatherForecast.getDataList().toString());
-            } catch (APIException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
+        protected void onPostExecute(CurrentWeather currentWeather) {
+            super.onPostExecute(currentWeather);
             adapter.setWeatherCards(weatherCards);
         }
     }
+
 }

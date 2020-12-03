@@ -8,13 +8,14 @@ public class WeatherCard {
     private double humidity;
     private double windSpeed;
     private double weatherIcon;
+    private Integer cityID;
     private String weatherIconDescription;
 
     public WeatherCard() {
 
     }
 
-    public WeatherCard(String city, double temp, double tempMin, double tempMax, double humidity, double windSpeed, double weatherIcon, String weatherIconDescription) {
+    public WeatherCard(String city, double temp, double tempMin, double tempMax, double humidity, double windSpeed, double weatherIcon, String weatherIconDescription,Integer cityID) {
         this.city = city;
         this.temp = temp;
         this.tempMin = tempMin;
@@ -23,7 +24,12 @@ public class WeatherCard {
         this.windSpeed = windSpeed;
         this.weatherIcon = weatherIcon;
         this.weatherIconDescription = weatherIconDescription;
+        this.cityID=cityID;
     }
+
+    public void setCityID(Integer cityID){this.cityID=cityID;}
+
+    public Integer getCityID(){return cityID;}
 
     public String getCity() {
         return city;
