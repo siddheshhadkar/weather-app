@@ -1,7 +1,5 @@
 package com.example.weatherapp;
 
-import java.util.List;
-
 public class WeatherCard {
     private String city;
     private double temp;
@@ -10,9 +8,13 @@ public class WeatherCard {
     private double humidity;
     private double windSpeed;
     private double weatherIcon;
-    private double weatherIconDescription;
+    private String weatherIconDescription;
 
-    public WeatherCard(String city, double temp, double tempMin, double tempMax, double humidity, double windSpeed, double weatherIcon, double weatherIconDescription) {
+    public WeatherCard() {
+
+    }
+
+    public WeatherCard(String city, double temp, double tempMin, double tempMax, double humidity, double windSpeed, double weatherIcon, String weatherIconDescription) {
         this.city = city;
         this.temp = temp;
         this.tempMin = tempMin;
@@ -79,11 +81,11 @@ public class WeatherCard {
         this.weatherIcon = weatherIcon;
     }
 
-    public double getWeatherIconDescription() {
+    public String getWeatherIconDescription() {
         return weatherIconDescription;
     }
 
-    public void setWeatherIconDescription(double weatherIconDescription) {
+    public void setWeatherIconDescription(String weatherIconDescription) {
         this.weatherIconDescription = weatherIconDescription;
     }
 }

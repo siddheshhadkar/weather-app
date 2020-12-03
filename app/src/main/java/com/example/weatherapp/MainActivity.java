@@ -1,11 +1,12 @@
 package com.example.weatherapp;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,14 +18,20 @@ import com.google.android.material.appbar.MaterialToolbar;
 import net.aksingh.owmjapis.api.APIException;
 import net.aksingh.owmjapis.core.OWM;
 import net.aksingh.owmjapis.model.CurrentWeather;
+import net.aksingh.owmjapis.model.HourlyWeatherForecast;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
+    private final List<WeatherCard> weatherCards = new ArrayList<>();
     private OWM owm;
-    private List<WeatherCard> weatherCards = new ArrayList<>();
     private WeatherCardAdapter adapter;
+
+    private double latitude;
+    private double longitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,36 +42,59 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         owm = new OWM(APIKey.KEY);
         owm.setUnit(OWM.Unit.METRIC);
+        weatherCards.add(new WeatherCard());
 
+        latitude = 19.2403;
+        longitude = 73.1305;
         new GetCurrentWeather().execute();
+        getExtraCards();
+        addNewLocation("Mumbai");
+        addNewLocation("Thane");
+        addNewLocation("New York");
+        addNewLocation("Washington");
+        addNewLocation("Bahrain");
+        addNewLocation("London");
 
-        weatherCards = getWeatherCards();
         adapter = new WeatherCardAdapter();
         adapter.setWeatherCards(weatherCards);
         adapter.setOnItemClickListener(card -> {
-            // TODO: 3/12/20 New intent here
-            Toast.makeText(this, "TOast", Toast.LENGTH_SHORT).show();
+            Intent i = new Intent(this, DetailedWeather.class);
+//            i.putExtra("CITYNAME", card.getCity());
+            startActivity(i);
         });
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(adapter);
-
     }
 
-    private List<WeatherCard> getWeatherCards() {
-        // TODO: 2/12/20 fetch current and favourite weather cards
-        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
-        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
-        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
-        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
-        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
-        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
-        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
-        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
-        weatherCards.add(new WeatherCard("A", 1, 1, 1, 1, 1, 1, 1));
-        return weatherCards;
+    private void getExtraCards() {
+        SharedPreferences preferences = getSharedPreferences("cities", MODE_PRIVATE);
+        Set<String> cityNames;
+        cityNames = preferences.getStringSet("CITIES", new HashSet<>());
+        for (String city : cityNames) {
+            new GetCurrentWeather().execute(city);
+        }
+    }
+
+    private void addNewLocation(String city) {
+        SharedPreferences preferences = getSharedPreferences("cities", MODE_PRIVATE);
+        Set<String> cityNames;
+        cityNames = preferences.getStringSet("CITIES", new HashSet<>());
+        SharedPreferences.Editor editor = preferences.edit();
+        cityNames.add(city);
+        editor.putStringSet("CITIES", cityNames);
+        editor.apply();
+
+        new GetCurrentWeather().execute(city);
+    }
+
+    private void removeLocation(String city) {
+        SharedPreferences preferences = getSharedPreferences("cities", MODE_PRIVATE);
+        Set<String> cityNames;
+        cityNames = preferences.getStringSet("CITIES", new HashSet<>());
+        cityNames.remove(city);
     }
 
     @Override
@@ -86,10 +116,41 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected CurrentWeather doInBackground(String... strings) {
             try {
-//                HourlyWeatherForecast weatherForecast = owm.hourlyWeatherForecastByCityId(1268295);
-//                HourlyWeatherForecast weatherForecast = owm.hourlyWeatherForecastByCityName("Mumbai", OWM.Country.INDIA);
-                CurrentWeather currentWeather = owm.currentWeatherByCoords(34.251935, 93.489513);
-                Log.e("MAP", currentWeather.getMainData().toString());
+                CurrentWeather currentWeather;
+                if (strings.length == 0) {
+                    currentWeather = owm.currentWeatherByCoords(latitude, longitude);
+                } else {
+                    currentWeather = owm.currentWeatherByCityName(strings[0]);
+                }
+                new GetHourlyForecast().execute(currentWeather.getCityId());
+
+                WeatherCard card = new WeatherCard();
+                card.setCity(currentWeather.getCityName());
+                card.setHumidity(currentWeather.getMainData().getHumidity());
+                card.setTemp(currentWeather.getMainData().getTemp());
+                card.setTempMin(currentWeather.getMainData().getTempMin());
+                card.setTempMax(currentWeather.getMainData().getTempMax());
+                card.setWindSpeed(currentWeather.getWindData().getSpeed());
+                card.setWeatherIconDescription(currentWeather.getWeatherList().get(0).getMainInfo());
+                if (strings.length == 0) {
+                    weatherCards.set(0, card);
+                } else {
+                    weatherCards.add(card);
+                }
+            } catch (APIException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    class GetHourlyForecast extends AsyncTask<Integer, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Integer... integers) {
+            try {
+                HourlyWeatherForecast weatherForecast = owm.hourlyWeatherForecastByCityId(integers[0]);
+                Log.e("MAP", weatherForecast.getDataList().toString());
             } catch (APIException e) {
                 e.printStackTrace();
             }
@@ -97,8 +158,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(CurrentWeather currentWeather) {
-            super.onPostExecute(currentWeather);
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            adapter.setWeatherCards(weatherCards);
         }
     }
 }

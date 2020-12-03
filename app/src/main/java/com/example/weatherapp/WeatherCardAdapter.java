@@ -3,6 +3,7 @@ package com.example.weatherapp;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,7 +34,21 @@ public class WeatherCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         WeatherCard card = weatherCards.get(position);
-        // TODO: 2/12/20 set card fields through holder object
+        if (position == 0) {
+            MainCardViewHolder mainCardViewHolder = (MainCardViewHolder) holder;
+            mainCardViewHolder.cityName.setText(card.getCity());
+            mainCardViewHolder.currentTemp.setText(card.getTemp() + " \u00B0C");
+            mainCardViewHolder.minTemp.setText(card.getTempMin() + " \u00B0C");
+            mainCardViewHolder.maxTemp.setText(card.getTempMax() + " \u00B0C");
+            mainCardViewHolder.windSpeed.setText("Wind Speed: " + card.getWindSpeed());
+            mainCardViewHolder.humidity.setText("Humidity: " + card.getHumidity());
+            mainCardViewHolder.weatherInfo.setText(card.getWeatherIconDescription());
+        } else {
+            ExtraCardViewHolder extraCardViewHolder = (ExtraCardViewHolder) holder;
+            extraCardViewHolder.cityName.setText(card.getCity());
+            extraCardViewHolder.currentTemp.setText(card.getTemp() + " \u00B0C");
+            extraCardViewHolder.weatherInfo.setText(card.getWeatherIconDescription());
+        }
     }
 
     @Override
@@ -58,8 +73,24 @@ public class WeatherCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     class MainCardViewHolder extends RecyclerView.ViewHolder {
+        public TextView cityName;
+        public TextView currentTemp;
+        public TextView minTemp;
+        public TextView maxTemp;
+        public TextView windSpeed;
+        public TextView humidity;
+        public TextView weatherInfo;
+
         public MainCardViewHolder(@NonNull View itemView) {
             super(itemView);
+            cityName = itemView.findViewById(R.id.cityName);
+            currentTemp = itemView.findViewById(R.id.currentTemp);
+            minTemp = itemView.findViewById(R.id.minTemp);
+            maxTemp = itemView.findViewById(R.id.maxTemp);
+            windSpeed = itemView.findViewById(R.id.windSpeed);
+            humidity = itemView.findViewById(R.id.humidity);
+            weatherInfo = itemView.findViewById(R.id.weatherInfo);
+
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
                 if (listener != null && position != RecyclerView.NO_POSITION) {
@@ -70,8 +101,16 @@ public class WeatherCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     class ExtraCardViewHolder extends RecyclerView.ViewHolder {
+        public TextView cityName;
+        public TextView currentTemp;
+        public TextView weatherInfo;
+
         public ExtraCardViewHolder(@NonNull View itemView) {
             super(itemView);
+            cityName = itemView.findViewById(R.id.smallCardCityName);
+            currentTemp = itemView.findViewById(R.id.smallCardCurrentTemp);
+            weatherInfo = itemView.findViewById(R.id.smallCardWeatherInfo);
+
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
                 if (listener != null && position != RecyclerView.NO_POSITION) {
